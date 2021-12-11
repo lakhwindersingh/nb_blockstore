@@ -54,6 +54,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
     echo 'source /opt/rust/env' >>/etc/profile ; \
     echo 'source /opt/rust/env' >>/etc/bash.bashrc
 
+
 ## Allow access to database, trust local connections
 # RUN sed -i /etc/postgresql/12/main/pg_hba.conf -Ee's,(^local\s+all\s+postgres\s+)\w+,\1trust,'
 RUN echo " \n\
@@ -67,6 +68,12 @@ host    replication     all             ::1/128                 trust \n\
 " > /etc/postgresql/12/main/pg_hba.conf
 
 ENV PATH=${PATH}:/usr/lib/postgresql/12/bin/
+
+RUN git clone https://github.com/hyperledger/iroha.git && cd iroha && ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build
+
+RUN cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake . -DCMAKE_BUILD_TYPE=RELEASE   -GNinja -DUSE_BURROW=OFF -DUSE_URSA=OFF -DTESTING=OFF -DPACKAGE_DEB=OFF
+
+RUN cmake --build . --target irohad && ./build/bin/irohad --help
 
 ## non-interactive adduser
 ##   -m = create home dir
