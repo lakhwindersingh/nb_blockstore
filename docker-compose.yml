@@ -1,0 +1,29 @@
+version: "3.7"
+
+services:
+  nb_blockstore:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      image: nb_blockstore
+      container_name: nb_blockstore
+      environment:
+        TZ: "America/new_york"
+      ports:
+        - "8282:8282"
+      volumes:
+        #- /data/code/projects/notebook:/home/jupyter/notebook
+        - /etc/localtime:/etc/localtime:ro
+  nb_blockstore-postgresql:
+    image: postgres:13.5
+     volumes:
+       - ~/volumes/nb_blockstore/postgresql/:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=nb_blockstore
+      - POSTGRES_PASSWORD=nb_blockstore
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    # If you want to expose these ports outside your dev PC,
+    # remove the "127.0.0.1:" prefix
+    ports:
+      - 127.0.0.1:5432:5432
+    
