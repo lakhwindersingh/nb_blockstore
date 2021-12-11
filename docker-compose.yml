@@ -7,13 +7,31 @@ services:
         dockerfile: Dockerfile
       image: nb_blockstore
       container_name: nb_blockstore
-      environment:
-        TZ: "America/new_york"
-      ports:
-        - "8282:8282"
-      volumes:
-        #- /data/code/projects/notebook:/home/jupyter/notebook
-        - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "${IROHA_PORT}:50051"
+      - "${DEBUGGER_PORT}:20000"
+    environment:
+      - IROHA_POSTGRES_HOST=${COMPOSE_PROJECT_NAME}_postgres_1
+      - IROHA_POSTGRES_PORT=5432
+      - IROHA_POSTGRES_USER=iroha
+      - IROHA_POSTGRES_PASSWORD=helloworld
+      - CCACHE_DIR=/tmp/ccache
+    # export G_ID=$(id -g $(whoami))
+    # export U_ID=$(id -g $(whoami))
+    user: ${U_ID:-0}:${G_ID:-0}
+    depends_on:
+      - nb_blockstore-postgresql
+    tty: true
+    volumes:
+      - ../:/opt/iroha
+      - ccache-data:/tmp/ccache
+      - /etc/localtime:/etc/localtime:ro
+    working_dir: /opt/iroha
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+
   nb_blockstore-postgresql:
     image: postgres:13.5
     volumes:
@@ -24,6 +42,12 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
     # If you want to expose these ports outside your dev PC,
     # remove the "127.0.0.1:" prefix
+    command: -c 'max_prepared_transactions=100'
+
     ports:
       - 127.0.0.1:5432:5432
+    
+volumes:
+  ccache-data:
+    
     
