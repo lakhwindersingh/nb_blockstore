@@ -16,7 +16,7 @@ services:
         - /etc/localtime:/etc/localtime:ro
   nb_blockstore-postgresql:
     image: postgres:13.5
-     volumes:
+    volumes:
        - ~/volumes/nb_blockstore/postgresql/:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=nb_blockstore
